@@ -1,0 +1,16 @@
+.venv
+.smokevenv
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache
+.mypy_cache
+.ruff_cache
+logs
+*.log
+.env
+.git
+.gitignore
+Dockerfile
+README.md

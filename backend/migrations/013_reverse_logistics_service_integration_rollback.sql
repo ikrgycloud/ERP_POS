@@ -1,0 +1,4 @@
+-- Non-destructive by design.
+-- The service integration migration adds optimistic concurrency columns,
+-- immutable document snapshots, and the domain event outbox.
+-- Production rollback must not drop audit/event/snapshot data automatically.

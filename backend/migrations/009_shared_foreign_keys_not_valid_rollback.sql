@@ -1,0 +1,11 @@
+ALTER TABLE invoices DROP CONSTRAINT IF EXISTS fk_invoices_outlet_id;
+ALTER TABLE invoices DROP CONSTRAINT IF EXISTS fk_invoices_linked_invoice_id;
+ALTER TABLE invoices DROP CONSTRAINT IF EXISTS fk_invoices_customer_id;
+ALTER TABLE invoices DROP CONSTRAINT IF EXISTS fk_invoices_business_profile_id;
+ALTER TABLE orders DROP CONSTRAINT IF EXISTS fk_orders_supplier_id;
+ALTER TABLE orders DROP CONSTRAINT IF EXISTS fk_orders_outlet_id;
+ALTER TABLE orders DROP CONSTRAINT IF EXISTS fk_orders_customer_id;
+ALTER TABLE orders DROP CONSTRAINT IF EXISTS fk_orders_business_profile_id;
+ALTER TABLE products DROP CONSTRAINT IF EXISTS fk_products_supplier_id;
+ALTER TABLE products DROP CONSTRAINT IF EXISTS fk_products_category_id;
+ALTER TABLE products DROP CONSTRAINT IF EXISTS fk_products_business_profile_id;

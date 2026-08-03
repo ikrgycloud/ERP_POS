@@ -1,0 +1,14 @@
+DROP INDEX IF EXISTS ix_uploaded_files_business_active_created;
+DROP INDEX IF EXISTS ix_waybills_generated_status;
+DROP INDEX IF EXISTS ix_invoices_business_direction_date;
+DROP INDEX IF EXISTS ix_invoices_business_type_date;
+DROP INDEX IF EXISTS ix_invoices_business_date_status;
+DROP INDEX IF EXISTS ix_orders_business_outlet_date;
+DROP INDEX IF EXISTS ix_orders_business_type_date;
+DROP INDEX IF EXISTS ix_orders_business_date_status;
+DROP INDEX IF EXISTS ix_inventory_ledger_business_product;
+DROP INDEX IF EXISTS ix_products_business_low_stock;
+DROP INDEX IF EXISTS ix_products_business_name;
+DROP INDEX IF EXISTS ix_products_business_barcode;
+DROP INDEX IF EXISTS ix_products_business_sku;
+DROP INDEX IF EXISTS ix_products_business_active_created;

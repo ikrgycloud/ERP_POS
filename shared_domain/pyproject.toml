@@ -1,0 +1,47 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "erp-pos-shared-domain"
+version = "0.1.0"
+description = "Framework-independent business-domain rules shared by ERP and POS."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Proprietary" }
+authors = [{ name = "ERP POS Team" }]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+]
+
+[tool.setuptools]
+packages = [
+  "shared_domain",
+  "shared_domain.audit",
+  "shared_domain.common",
+  "shared_domain.core",
+  "shared_domain.core.contracts",
+  "shared_domain.customers",
+  "shared_domain.dashboard",
+  "shared_domain.documents",
+  "shared_domain.events",
+  "shared_domain.finance",
+  "shared_domain.inventory",
+  "shared_domain.products",
+  "shared_domain.reports",
+  "shared_domain.returns",
+  "shared_domain.reverse_logistics",
+  "shared_domain.sales",
+  "shared_domain.settings",
+  "shared_domain.staff",
+  "shared_domain.suppliers",
+  "shared_domain.sync",
+  "shared_domain.tax",
+]
+package-dir = { "shared_domain" = "." }
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

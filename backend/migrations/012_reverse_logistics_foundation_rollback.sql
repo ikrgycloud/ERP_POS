@@ -1,0 +1,3 @@
+-- Non-destructive by design.
+-- Reverse logistics tables contain audit, approval, shipment, and financial history.
+-- Production rollback must not drop these records automatically.

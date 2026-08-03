@@ -1,0 +1,24 @@
+{
+  "expo": {
+    "name": "ERP Mobile",
+    "slug": "erp-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#0F172A"
+      },
+      "package": "com.pratap2.erpmobile"
+    },
+    "web": {
+      "bundler": "metro"
+    }
+  }
+}

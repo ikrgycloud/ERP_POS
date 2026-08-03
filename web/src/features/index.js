@@ -1,0 +1,15 @@
+export * as productsFeature from "./products";
+export * as customersFeature from "./customers";
+export * as suppliersFeature from "./suppliers";
+export * as categoriesFeature from "./categories";
+export * as inventoryFeature from "./inventory";
+export * as ordersFeature from "./orders";
+export * as invoicesFeature from "./invoices";
+export * as returnsFeature from "./returns";
+export * as dashboardFeature from "./dashboard";
+export * as reportsFeature from "./reports";
+export * as waybillsFeature from "./waybills";
+export * as discountsFeature from "./discounts";
+export * as paymentsFeature from "./payments";
+export * as employeesFeature from "./employees";
+export * as settingsFeature from "./settings";
