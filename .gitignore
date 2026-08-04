@@ -18,3 +18,9 @@ logs/
 .expo/
 chrome-temp/
 edge-temp/
+*.backup
+# The approved initial database snapshot is intentionally versioned in this
+# private repository. All other database backups remain ignored.
+!database/
+!database/bootstrap/
+!database/bootstrap/erp-pos-initial-data.backup

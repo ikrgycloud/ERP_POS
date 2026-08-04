@@ -1,0 +1,32 @@
+# AWS production override. Start with:
+# docker compose -f compose.yaml -f compose.aws.yaml up -d --build
+services:
+  erp-web:
+    ports: !reset []
+
+  pos-web:
+    ports: !reset []
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    environment:
+      ERP_DOMAIN: ${ERP_DOMAIN:?Set ERP_DOMAIN in .env}
+      POS_DOMAIN: ${POS_DOMAIN:?Set POS_DOMAIN in .env}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      erp-web:
+        condition: service_healthy
+      pos-web:
+        condition: service_healthy
+    networks: [platform]
+
+volumes:
+  caddy_data:
+  caddy_config:

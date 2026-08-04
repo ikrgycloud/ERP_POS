@@ -1,0 +1,7 @@
+{$ERP_DOMAIN} {
+    reverse_proxy erp-web:80
+}
+
+{$POS_DOMAIN} {
+    reverse_proxy pos-web:80
+}

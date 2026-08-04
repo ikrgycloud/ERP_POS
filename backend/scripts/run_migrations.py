@@ -49,6 +49,56 @@ def ensure_schema_migrations(cursor) -> None:
     )
 
 
+def column_exists(cursor, table_name: str, column_name: str) -> bool:
+    cursor.execute(
+        """
+        SELECT EXISTS (
+            SELECT 1
+            FROM information_schema.columns
+            WHERE table_schema = 'public'
+              AND table_name = %s
+              AND column_name = %s
+        )
+        """,
+        (table_name, column_name),
+    )
+    return bool(cursor.fetchone()[0])
+
+
+def normalize_notification_json_columns(cursor) -> None:
+    """Normalize ORM-created JSON columns before the legacy JSONB migration."""
+    for table_name, column_name in (
+        ("notification_outbox", "payload"),
+        ("notification_history", "channel_summary"),
+    ):
+        cursor.execute(
+            """
+            SELECT data_type
+            FROM information_schema.columns
+            WHERE table_schema = 'public'
+              AND table_name = %s
+              AND column_name = %s
+            """,
+            (table_name, column_name),
+        )
+        row = cursor.fetchone()
+        if row and row[0] == "json":
+            cursor.execute(
+                f"ALTER TABLE {table_name} ALTER COLUMN {column_name} "
+                f"TYPE JSONB USING {column_name}::text::jsonb"
+            )
+
+
+def is_unneeded_legacy_migration(cursor, filename: str) -> bool:
+    """Skip invoice-only compatibility steps on the current generic schema."""
+    requirements = {
+        "023_notification_outbox_legacy_invoice_nullable.sql": ("notification_outbox", "invoice_id"),
+        "024_notification_history_legacy_invoice_nullable.sql": ("notification_history", "invoice_id"),
+    }
+    requirement = requirements.get(filename)
+    return bool(requirement and not column_exists(cursor, *requirement))
+
+
 def main() -> None:
     database_url = os.getenv("DATABASE_URL", "").strip()
     if not database_url:
@@ -74,6 +124,7 @@ def main() -> None:
         connection.autocommit = False
         with connection.cursor() as cursor:
             ensure_schema_migrations(cursor)
+            normalize_notification_json_columns(cursor)
             for path in files:
                 sql = path.read_text(encoding="utf-8")
                 digest = checksum(sql)
@@ -88,6 +139,16 @@ def main() -> None:
                             f"Migration checksum changed after apply: {path.name}"
                         )
                     print(f"skip {path.name}")
+                    continue
+                if is_unneeded_legacy_migration(cursor, path.name):
+                    print(f"skip {path.name} (not required by current schema)")
+                    cursor.execute(
+                        """
+                        INSERT INTO schema_migrations (filename, checksum)
+                        VALUES (%s, %s)
+                        """,
+                        (path.name, digest),
+                    )
                     continue
                 print(f"apply {path.name}")
                 cursor.execute(sql)

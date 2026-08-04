@@ -1,0 +1,167 @@
+name: ${COMPOSE_PROJECT_NAME:-business-platform}
+
+x-db: &db_env
+  POSTGRES_DB: ${POSTGRES_DB:?Set POSTGRES_DB in .env}
+  POSTGRES_USER: ${POSTGRES_USER:?Set POSTGRES_USER in .env}
+  POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+
+x-erp: &erp_env
+  APP_ENV: ${APP_ENV:-development}
+  DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+  AUTO_CREATE_TABLES: "false"
+  ALLOW_DEV_SEED: "false"
+  CORS_ORIGINS: ${ERP_CORS_ORIGINS}
+  TRUSTED_HOSTS: ${ERP_TRUSTED_HOSTS}
+  ERP_PUBLIC_BASE_URL: ${ERP_PUBLIC_BASE_URL}
+  UPLOAD_DIR: /data/uploads
+  LOG_FILE: /data/logs/erp-backend.log
+
+x-pos: &pos_env
+  ENVIRONMENT: ${POS_ENVIRONMENT:-development}
+  DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+  AUTO_CREATE_DATABASE: "false"
+  AUTO_CREATE_TABLES: "false"
+  ALLOW_DEV_SEED: "false"
+  CORS_ORIGINS: ${POS_CORS_ORIGINS}
+  TRUSTED_HOSTS: ${POS_TRUSTED_HOSTS}
+  INVOICE_PUBLIC_BASE_URL: ${POS_INVOICE_PUBLIC_BASE_URL}
+  MEDIA_BASE_URL: auto
+  UPLOAD_DIR: /app/uploads
+  LOG_FILE: /app/logs/pos-backend.log
+
+services:
+  db:
+    image: postgres:${POSTGRES_VERSION:-17}-alpine
+    restart: unless-stopped
+    environment: *db_env
+    volumes:
+      - erp_postgres_data:/var/lib/postgresql/data
+      # Runs only while PostgreSQL creates a brand-new data volume.
+      - ./database/bootstrap:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+    networks: [platform]
+
+  pos-migrate:
+    build:
+      context: ../POS-main
+      dockerfile: POS-Backend/Dockerfile
+      additional_contexts:
+        erp_shared_domain: ../ERP-main/shared_domain
+    image: business-platform-pos-backend:local
+    restart: "no"
+    env_file: [../POS-main/POS-Backend/.env]
+    environment: *pos_env
+    command: ["alembic", "upgrade", "head"]
+    depends_on:
+      db: { condition: service_healthy }
+    networks: [platform]
+
+  erp-migrate:
+    build: { context: ., dockerfile: backend/Dockerfile }
+    image: business-platform-erp-backend:local
+    restart: "no"
+    env_file: [backend/.env]
+    environment: *erp_env
+    command: ["python", "scripts/run_migrations.py"]
+    depends_on:
+      db: { condition: service_healthy }
+      pos-migrate: { condition: service_completed_successfully }
+    networks: [platform]
+
+  pos-backend:
+    image: business-platform-pos-backend:local
+    restart: unless-stopped
+    env_file: [../POS-main/POS-Backend/.env]
+    environment: *pos_env
+    volumes: [pos_uploads:/app/uploads, pos_logs:/app/logs]
+    depends_on:
+      db: { condition: service_healthy }
+      pos-migrate: { condition: service_completed_successfully }
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3).read()"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 25s
+    networks: [platform]
+
+  erp-backend:
+    image: business-platform-erp-backend:local
+    restart: unless-stopped
+    env_file: [backend/.env]
+    environment: *erp_env
+    volumes: [erp_backend_uploads:/data/uploads, erp_backend_logs:/data/logs]
+    depends_on:
+      db: { condition: service_healthy }
+      erp-migrate: { condition: service_completed_successfully }
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/health', timeout=3).read()"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 25s
+    networks: [platform]
+
+  pos-web:
+    build:
+      context: ../POS-main
+      dockerfile: POS-Frontend/Dockerfile
+      args:
+        VITE_API_URL: "${POS_WEB_API_URL:-same-origin}"
+    image: business-platform-pos-web:local
+    restart: unless-stopped
+    environment:
+      POS_API_UPSTREAM: http://pos-backend:8000
+      POS_CLIENT_MAX_BODY_SIZE: ${POS_CLIENT_MAX_BODY_SIZE:-16m}
+      PORT: "80"
+    ports: ["${POS_WEB_PORT:-8081}:80"]
+    depends_on:
+      pos-backend: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://127.0.0.1/', r => process.exit(r.statusCode < 500 ? 0 : 1)).on('error', () => process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks: [platform]
+
+  erp-web:
+    build:
+      context: .
+      dockerfile: web/Dockerfile
+      args:
+        EXPO_PUBLIC_API_URL: "${ERP_WEB_API_URL:-same-origin}"
+    image: business-platform-erp-web:local
+    restart: unless-stopped
+    environment:
+      ERP_API_UPSTREAM: http://erp-backend:8001
+      ERP_CLIENT_MAX_BODY_SIZE: ${ERP_CLIENT_MAX_BODY_SIZE:-10m}
+      PORT: "80"
+    ports: ["${ERP_WEB_PORT:-8080}:80"]
+    depends_on:
+      erp-backend: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://127.0.0.1/', r => process.exit(r.statusCode < 500 ? 0 : 1)).on('error', () => process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks: [platform]
+
+networks:
+  platform: { driver: bridge }
+
+volumes:
+  erp_postgres_data:
+    name: erp_postgres_data
+  erp_backend_uploads:
+    name: erp_backend_uploads
+  erp_backend_logs:
+    name: erp_backend_logs
+  pos_uploads:
+  pos_logs:

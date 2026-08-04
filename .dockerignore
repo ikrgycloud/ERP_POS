@@ -1,0 +1,26 @@
+# Version control and local configuration
+.git
+.gitignore
+.env
+**/.env
+
+# Dependencies and build output
+**/node_modules
+**/.venv
+**/__pycache__
+**/.pytest_cache
+**/*.py[cod]
+**/*.egg-info
+web/dist
+web/.expo
+
+# Runtime data (provided by named Docker volumes)
+backend/uploads
+backend/logs
+
+# Editor and operating-system files
+.vscode
+.idea
+*.swp
+.DS_Store
+Thumbs.db
