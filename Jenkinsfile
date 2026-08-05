@@ -1,9 +1,8 @@
 pipeline {
-    
+
     agent any
 
     environment {
-
         AWS_REGION = "eu-north-1"
         AWS_ACCOUNT_ID = "032844082845"
 
@@ -12,9 +11,7 @@ pipeline {
         IMAGE_TAG = "${BUILD_NUMBER}"
 
         APP_SERVER = "16.16.216.155"
-
         APP_PATH = "/opt/business-platform"
-
     }
 
     options {
@@ -29,51 +26,50 @@ pipeline {
                 checkout scm
             }
         }
+
         stage('Debug Workspace') {
-    steps {
-        sh '''
-        echo "========================="
-        echo "Workspace"
-        echo "========================="
-        pwd
+            steps {
+                sh '''
+                echo "========================="
+                echo "Workspace"
+                echo "========================="
+                pwd
 
-        echo ""
-        echo "========================="
-        echo "Files"
-        echo "========================="
-        ls -la
+                echo ""
+                echo "========================="
+                echo "Files"
+                echo "========================="
+                ls -la
 
-        echo ""
-        echo "========================="
-        echo "Git Branch"
-        echo "========================="
-        git branch
+                echo ""
+                echo "========================="
+                echo "Git Branch"
+                echo "========================="
+                git branch
 
-        echo ""
-        echo "========================="
-        echo "compose.build.yaml"
-        echo "========================="
-        cat compose.build.yaml
+                echo ""
+                echo "========================="
+                echo "compose.build.yaml"
+                echo "========================="
+                cat compose.build.yaml
 
-        echo ""
-        echo "========================="
-        echo "Compose Images"
-        echo "========================="
-        docker compose -f compose.build.yaml config | grep image
+                echo ""
+                echo "========================="
+                echo "Compose Images"
+                echo "========================="
+                docker compose -f compose.build.yaml config | grep image
 
-        echo ""
-        echo "========================="
-        echo "Push Script"
-        echo "========================="
-        cat scripts/push.sh
-        '''
-    }
-}
+                echo ""
+                echo "========================="
+                echo "Push Script"
+                echo "========================="
+                cat scripts/push.sh
+                '''
+            }
+        }
 
         stage('Login to Amazon ECR') {
-
             steps {
-
                 withCredentials([
                     [
                         $class: 'AmazonWebServicesCredentialsBinding',
@@ -89,93 +85,78 @@ pipeline {
                     --username AWS \
                     --password-stdin ${ECR}
                     '''
-
                 }
-
             }
-
         }
+
         stage('Debug') {
-    steps {
-        sh '''
-        echo "===== Current Directory ====="
-        pwd
+            steps {
+                sh '''
+                echo "===== Current Directory ====="
+                pwd
 
-        echo "===== Files ====="
-        ls -la
+                echo "===== Files ====="
+                ls -la
 
-        echo "===== compose.build.yaml ====="
-        cat compose.build.yaml
+                echo "===== compose.build.yaml ====="
+                cat compose.build.yaml
 
-        echo "===== Docker Compose Config ====="
-        docker compose -f compose.build.yaml config | grep image
+                echo "===== Docker Compose Config ====="
+                docker compose -f compose.build.yaml config | grep image
 
-        echo "===== Build Script ====="
-        cat scripts/build.sh
+                echo "===== Build Script ====="
+                cat scripts/build.sh
 
-        echo "===== Push Script ====="
-        cat scripts/push.sh
-        '''
-    }
-}
+                echo "===== Push Script ====="
+                cat scripts/push.sh
+                '''
+            }
+        }
 
         stage('Build Images') {
-
             steps {
-
                 sh '''
                 chmod +x scripts/build.sh
                 ./scripts/build.sh
                 '''
-
             }
-
         }
 
         stage('Push Images') {
-
             steps {
-
                 sh '''
                 chmod +x scripts/push.sh
                 ./scripts/push.sh
                 '''
-
             }
-
         }
 
         stage('Deploy To EC2') {
-
             steps {
-
                 sshagent(credentials: ['app-server-ssh']) {
-
                     sh '''
                     chmod +x scripts/deploy.sh
                     ./scripts/deploy.sh
                     '''
-
                 }
-
             }
-
         }
 
         stage('Verify Deployment') {
-    steps {
-        sshagent(credentials: ['app-server-ssh']) {
-            sh '''
-            ssh -o StrictHostKeyChecking=no ubuntu@${APP_SERVER} <<EOF
-            cd ${APP_PATH}
-            
-            echo ""
-            echo "====================================="
-            echo "Running Containers"
-            echo "====================================="
-            docker ps
-            echo ""
-            echo "====================================="
+            steps {
+                sshagent(credentials: ['app-server-ssh']) {
+                    sh '''
+ssh -o StrictHostKeyChecking=no ubuntu@${APP_SERVER} <<EOF
+cd ${APP_PATH}
+
+echo ""
+echo "====================================="
+echo "Running Containers"
+echo "====================================="
+docker ps
+
+echo ""
+echo "====================================="
 echo "Container Health"
 echo "====================================="
 docker compose -f compose.prod.yaml ps
@@ -189,38 +170,31 @@ echo "POS : http://${APP_SERVER}:83"
 
 EOF
 '''
+                }
+            }
         }
     }
-}
+
     post {
 
         success {
-
             echo '''
 ===========================================
 ERP + POS Deployment Successful
 ===========================================
 '''
-
         }
 
         failure {
-
             echo '''
 ===========================================
 Deployment Failed
 ===========================================
 '''
-
         }
 
         always {
-
-           echo "Skipping workspace cleanup"
-
+            echo "Skipping workspace cleanup"
         }
-
     }
-
-}
 }
