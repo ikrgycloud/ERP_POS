@@ -5,19 +5,65 @@ x-db: &db_env
   POSTGRES_USER: ${POSTGRES_USER:?Set POSTGRES_USER in .env}
   POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
 
+x-erp-build: &erp_build
+  context: .
+  dockerfile: backend/Dockerfile
+
+x-pos-build: &pos_build
+  context: ./POS-main
+  dockerfile: POS-Backend/Dockerfile
+  additional_contexts:
+    erp_shared_domain: ./shared_domain
+
 x-erp: &erp_env
+  ENVIRONMENT: ${APP_ENV:-development}
   APP_ENV: ${APP_ENV:-development}
+  HOST: 0.0.0.0
+  PORT: 8001
   DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
   AUTO_CREATE_TABLES: "false"
   ALLOW_DEV_SEED: "false"
   CORS_ORIGINS: ${ERP_CORS_ORIGINS}
   TRUSTED_HOSTS: ${ERP_TRUSTED_HOSTS}
   ERP_PUBLIC_BASE_URL: ${ERP_PUBLIC_BASE_URL}
+  MEDIA_BASE_URL: ${ERP_MEDIA_BASE_URL:-auto}
   UPLOAD_DIR: /data/uploads
+  STATIC_DIR: /data/static
   LOG_FILE: /data/logs/erp-backend.log
+  REGISTER_KEY: ${REGISTER_KEY:?Set REGISTER_KEY in .env}
+  SECRET_KEY: ${SECRET_KEY:-}
+  JWT_SECRET_KEY: ${JWT_SECRET_KEY:?Set JWT_SECRET_KEY in .env}
+  JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
+  ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-480}
+  REFRESH_TOKEN_EXPIRE_DAYS: ${REFRESH_TOKEN_EXPIRE_DAYS:-7}
+  LOG_LEVEL: ${LOG_LEVEL:-INFO}
+  LOG_FORMAT: ${LOG_FORMAT:-text}
+  RATE_LIMIT_ENABLED: ${ERP_RATE_LIMIT_ENABLED:-false}
+  NOTIFICATION_WORKER_ENABLED: ${ERP_NOTIFICATION_WORKER_ENABLED:-true}
+  BACKGROUND_WORKER_INTERVAL: ${BACKGROUND_WORKER_INTERVAL:-10}
+  NOTIFICATION_BATCH_SIZE: ${NOTIFICATION_BATCH_SIZE:-50}
+  NOTIFICATION_RETRY_SCHEDULE_SECONDS: ${NOTIFICATION_RETRY_SCHEDULE_SECONDS:-60,300,900,1800,3600,21600}
+  SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}
+  SMTP_PORT: ${SMTP_PORT:-587}
+  SMTP_USERNAME: ${SMTP_USERNAME:-}
+  SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+  SMTP_FROM: ${SMTP_FROM:-}
+  TWILIO_ENABLED: ${TWILIO_ENABLED:-false}
+  SMS_ENABLED: ${SMS_ENABLED:-false}
+  TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID:-}
+  TWILIO_AUTH_TOKEN: ${TWILIO_AUTH_TOKEN:-}
+  TWILIO_PHONE_NUMBER: ${TWILIO_PHONE_NUMBER:-}
+  WHATSAPP_ENABLED: ${WHATSAPP_ENABLED:-false}
+  DEFAULT_CUSTOMER_COUNTRY_CODE: ${DEFAULT_CUSTOMER_COUNTRY_CODE:-+91}
+  S3_BUCKET: ${S3_BUCKET:-}
+  S3_REGION: ${S3_REGION:-}
+  S3_ACCESS_KEY: ${S3_ACCESS_KEY:-}
+  S3_SECRET_KEY: ${S3_SECRET_KEY:-}
 
 x-pos: &pos_env
   ENVIRONMENT: ${POS_ENVIRONMENT:-development}
+  HOST: 0.0.0.0
+  PORT: 8000
   DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
   AUTO_CREATE_DATABASE: "false"
   AUTO_CREATE_TABLES: "false"
@@ -25,9 +71,42 @@ x-pos: &pos_env
   CORS_ORIGINS: ${POS_CORS_ORIGINS}
   TRUSTED_HOSTS: ${POS_TRUSTED_HOSTS}
   INVOICE_PUBLIC_BASE_URL: ${POS_INVOICE_PUBLIC_BASE_URL}
-  MEDIA_BASE_URL: auto
+  MEDIA_BASE_URL: ${POS_MEDIA_BASE_URL:-auto}
   UPLOAD_DIR: /app/uploads
+  STATIC_DIR: /app/static
   LOG_FILE: /app/logs/pos-backend.log
+  APP_NAME: ${POS_APP_NAME:-POS + ERP API}
+  APP_VERSION: ${POS_APP_VERSION:-1.0.0}
+  DEBUG: ${POS_DEBUG:-false}
+  SECRET_KEY: ${POS_SECRET_KEY:?Set POS_SECRET_KEY in .env}
+  JWT_SECRET_KEY: ${POS_JWT_SECRET_KEY:-}
+  ACCESS_TOKEN_EXPIRE_MINUTES: ${POS_ACCESS_TOKEN_EXPIRE_MINUTES:-60}
+  REFRESH_TOKEN_EXPIRE_DAYS: ${POS_REFRESH_TOKEN_EXPIRE_DAYS:-7}
+  ENABLE_HTTPS_REDIRECT: ${POS_ENABLE_HTTPS_REDIRECT:-false}
+  RATE_LIMIT_ENABLED: ${POS_RATE_LIMIT_ENABLED:-false}
+  RATE_LIMIT_REQUESTS: ${POS_RATE_LIMIT_REQUESTS:-120}
+  RATE_LIMIT_WINDOW_SECONDS: ${POS_RATE_LIMIT_WINDOW_SECONDS:-60}
+  NOTIFICATION_WORKER_ENABLED: ${POS_NOTIFICATION_WORKER_ENABLED:-true}
+  NOTIFICATION_WORKER_INTERVAL_SECONDS: ${POS_NOTIFICATION_WORKER_INTERVAL_SECONDS:-10}
+  NOTIFICATION_BATCH_SIZE: ${POS_NOTIFICATION_BATCH_SIZE:-20}
+  EMAIL_ENABLED: ${EMAIL_ENABLED:-false}
+  SMS_ENABLED: ${SMS_ENABLED:-false}
+  TWILIO_ENABLED: ${TWILIO_ENABLED:-false}
+  WHATSAPP_ENABLED: ${WHATSAPP_ENABLED:-false}
+  DEFAULT_CUSTOMER_COUNTRY_CODE: ${DEFAULT_CUSTOMER_COUNTRY_CODE:-+91}
+  SMTP_HOST: ${SMTP_HOST:-}
+  SMTP_PORT: ${SMTP_PORT:-587}
+  SMTP_USERNAME: ${SMTP_USERNAME:-}
+  SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+  SMTP_FROM: ${SMTP_FROM:-}
+  TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID:-}
+  TWILIO_AUTH_TOKEN: ${TWILIO_AUTH_TOKEN:-}
+  TWILIO_PHONE_NUMBER: ${TWILIO_PHONE_NUMBER:-}
+  TWILIO_WHATSAPP_NUMBER: ${TWILIO_WHATSAPP_NUMBER:-}
+  S3_BUCKET: ${S3_BUCKET:-}
+  S3_REGION: ${S3_REGION:-}
+  S3_ACCESS_KEY: ${S3_ACCESS_KEY:-}
+  S3_SECRET_KEY: ${S3_SECRET_KEY:-}
 
 services:
   db:
@@ -47,11 +126,7 @@ services:
     networks: [platform]
 
   pos-migrate:
-    build:
-      context: ./POS-main
-      dockerfile: POS-Backend/Dockerfile
-      additional_contexts:
-        erp_shared_domain: ./shared_domain
+    build: *pos_build
     image: business-platform-pos-backend:local
     restart: "no"
     env_file:
@@ -64,7 +139,7 @@ services:
     networks: [platform]
 
   erp-migrate:
-    build: { context: ., dockerfile: backend/Dockerfile }
+    build: *erp_build
     image: business-platform-erp-backend:local
     restart: "no"
     env_file:
@@ -78,6 +153,7 @@ services:
     networks: [platform]
 
   pos-backend:
+    build: *pos_build
     image: business-platform-pos-backend:local
     restart: unless-stopped
     env_file:
@@ -97,6 +173,7 @@ services:
     networks: [platform]
 
   erp-backend:
+    build: *erp_build
     image: business-platform-erp-backend:local
     restart: unless-stopped
     env_file:
@@ -121,6 +198,9 @@ services:
       dockerfile: POS-Frontend/Dockerfile
       args:
         VITE_API_URL: "${POS_WEB_API_URL:-same-origin}"
+        VITE_API_PORT: "${POS_WEB_API_PORT:-8000}"
+        VITE_API_VERSION_PATH: "${POS_WEB_API_VERSION_PATH:-/api/v1}"
+        VITE_REQUEST_TIMEOUT_MS: "${POS_WEB_REQUEST_TIMEOUT_MS:-15000}"
     image: business-platform-pos-web:local
     restart: unless-stopped
     environment:
@@ -144,6 +224,8 @@ services:
       dockerfile: web/Dockerfile
       args:
         EXPO_PUBLIC_API_URL: "${ERP_WEB_API_URL:-same-origin}"
+        EXPO_PUBLIC_API_PORT: "${ERP_WEB_API_PORT:-8001}"
+        EXPO_PUBLIC_API_VERSION_PATH: "${ERP_WEB_API_VERSION_PATH:-/api/v1}"
     image: business-platform-erp-web:local
     restart: unless-stopped
     environment:
