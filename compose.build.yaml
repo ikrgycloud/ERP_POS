@@ -6,7 +6,7 @@ services:
     build:
       context: .
       dockerfile: backend/Dockerfile
-    image: erp-backend:latest
+    image: ${ECR}/erp-backend:${IMAGE_TAG}
 
   erp-frontend:
     build:
@@ -16,7 +16,7 @@ services:
         EXPO_PUBLIC_API_URL: same-origin
         EXPO_PUBLIC_API_PORT: 8001
         EXPO_PUBLIC_API_VERSION_PATH: /api/v1
-    image: erp-frontend:latest
+    image: ${ECR}/erp-frontend:${IMAGE_TAG}
 
   pos-backend:
     build:
@@ -24,7 +24,7 @@ services:
       dockerfile: POS-Backend/Dockerfile
       additional_contexts:
         erp_shared_domain: ./shared_domain
-    image: pos-backend:latest
+    image: ${ECR}/pos-backend:${IMAGE_TAG}
 
   pos-frontend:
     build:
@@ -35,4 +35,4 @@ services:
         VITE_API_PORT: 8000
         VITE_API_VERSION_PATH: /api/v1
         VITE_REQUEST_TIMEOUT_MS: 15000
-    image: pos-frontend:latest
+    image: ${ECR}/pos-frontend:${IMAGE_TAG}
