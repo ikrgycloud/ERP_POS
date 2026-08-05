@@ -1,0 +1,38 @@
+name: business-platform-build
+
+services:
+
+  erp-backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    image: erp-backend:latest
+
+  erp-frontend:
+    build:
+      context: .
+      dockerfile: web/Dockerfile
+      args:
+        EXPO_PUBLIC_API_URL: same-origin
+        EXPO_PUBLIC_API_PORT: 8001
+        EXPO_PUBLIC_API_VERSION_PATH: /api/v1
+    image: erp-frontend:latest
+
+  pos-backend:
+    build:
+      context: ./POS-main
+      dockerfile: POS-Backend/Dockerfile
+      additional_contexts:
+        erp_shared_domain: ./shared_domain
+    image: pos-backend:latest
+
+  pos-frontend:
+    build:
+      context: ./POS-main
+      dockerfile: POS-Frontend/Dockerfile
+      args:
+        VITE_API_URL: same-origin
+        VITE_API_PORT: 8000
+        VITE_API_VERSION_PATH: /api/v1
+        VITE_REQUEST_TIMEOUT_MS: 15000
+    image: pos-frontend:latest
