@@ -1,7 +1,7 @@
 # ERP and POS shared Docker deployment
 
-Run from ERP-main. The Compose file builds POS from the sibling POS-main
-repository and starts both apps with one database.
+Run from the repository root. The Compose file builds the included `POS-main`
+project and starts both apps with one shared database.
 
 For local use:
 

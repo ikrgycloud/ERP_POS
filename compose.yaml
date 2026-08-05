@@ -48,13 +48,15 @@ services:
 
   pos-migrate:
     build:
-      context: ../POS-main
+      context: ./POS-main
       dockerfile: POS-Backend/Dockerfile
       additional_contexts:
-        erp_shared_domain: ../ERP-main/shared_domain
+        erp_shared_domain: ./shared_domain
     image: business-platform-pos-backend:local
     restart: "no"
-    env_file: [../POS-main/POS-Backend/.env]
+    env_file:
+      - path: ./POS-main/POS-Backend/.env
+        required: false
     environment: *pos_env
     command: ["alembic", "upgrade", "head"]
     depends_on:
@@ -65,7 +67,9 @@ services:
     build: { context: ., dockerfile: backend/Dockerfile }
     image: business-platform-erp-backend:local
     restart: "no"
-    env_file: [backend/.env]
+    env_file:
+      - path: ./backend/.env
+        required: false
     environment: *erp_env
     command: ["python", "scripts/run_migrations.py"]
     depends_on:
@@ -76,7 +80,9 @@ services:
   pos-backend:
     image: business-platform-pos-backend:local
     restart: unless-stopped
-    env_file: [../POS-main/POS-Backend/.env]
+    env_file:
+      - path: ./POS-main/POS-Backend/.env
+        required: false
     environment: *pos_env
     volumes: [pos_uploads:/app/uploads, pos_logs:/app/logs]
     depends_on:
@@ -93,7 +99,9 @@ services:
   erp-backend:
     image: business-platform-erp-backend:local
     restart: unless-stopped
-    env_file: [backend/.env]
+    env_file:
+      - path: ./backend/.env
+        required: false
     environment: *erp_env
     volumes: [erp_backend_uploads:/data/uploads, erp_backend_logs:/data/logs]
     depends_on:
@@ -109,7 +117,7 @@ services:
 
   pos-web:
     build:
-      context: ../POS-main
+      context: ./POS-main
       dockerfile: POS-Frontend/Dockerfile
       args:
         VITE_API_URL: "${POS_WEB_API_URL:-same-origin}"
