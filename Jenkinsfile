@@ -55,6 +55,29 @@ pipeline {
             }
 
         }
+        stage('Debug') {
+    steps {
+        sh '''
+        echo "===== Current Directory ====="
+        pwd
+
+        echo "===== Files ====="
+        ls -la
+
+        echo "===== compose.build.yaml ====="
+        cat compose.build.yaml
+
+        echo "===== Docker Compose Config ====="
+        docker compose -f compose.build.yaml config | grep image
+
+        echo "===== Build Script ====="
+        cat scripts/build.sh
+
+        echo "===== Push Script ====="
+        cat scripts/push.sh
+        '''
+    }
+}
 
         stage('Build Images') {
 
