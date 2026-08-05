@@ -1,32 +1,37 @@
-#!/bin/bash
+stage('Verify Deployment') {
 
-set -e
+    steps {
 
-echo "======================================="
-echo "Deploying Application"
-echo "======================================="
+        sshagent(credentials: ['app-server-ssh']) {
 
+            sh """
 ssh -o StrictHostKeyChecking=no ubuntu@${APP_SERVER} <<EOF
-
-set -e
-
 cd ${APP_PATH}
 
-sed -i "s/^IMAGE_TAG=.*/IMAGE_TAG=${IMAGE_TAG}/" .env
-
-aws ecr get-login-password --region ${AWS_REGION} | \
-docker login \
---username AWS \
---password-stdin ${ECR}
-
-docker compose -f compose.prod.yaml pull
-
-docker compose -f compose.prod.yaml up -d --remove-orphans
-
-docker image prune -f
-
+echo ""
+echo "====================================="
+echo "Running Containers"
+echo "====================================="
 docker ps
 
-EOF
+echo ""
+echo "====================================="
+echo "Container Health"
+echo "====================================="
+docker compose -f compose.prod.yaml ps
 
-echo "Deployment Finished Successfully"
+echo ""
+echo "====================================="
+echo "Application URLs"
+echo "====================================="
+echo "ERP  : http://${APP_SERVER}:82"
+echo "POS  : http://${APP_SERVER}:83"
+
+EOF
+"""
+
+        }
+
+    }
+
+}
