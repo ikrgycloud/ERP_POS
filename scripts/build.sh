@@ -2,11 +2,10 @@
 
 set -e
 
-echo "======================================"
+echo "======================================="
 echo "Building Docker Images"
-echo "======================================"
+echo "======================================="
 
 docker compose -f compose.build.yaml build
 
-echo
-echo "Build Completed Successfully"
+echo "Build Completed"
