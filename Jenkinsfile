@@ -222,7 +222,7 @@ Deployment Failed
 
         always {
 
-            cleanWs()
+           echo "Skipping workspace cleanup"
 
         }
 
