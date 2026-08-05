@@ -1,22 +1,17 @@
-echo "========================"
-echo "Docker Images"
-echo "========================"
-docker images
+#!/bin/bash
+
+set -e
+
+echo "======================================="
+echo "Pushing Images to ECR"
+echo "======================================="
+
+docker push ${ECR}/erp-backend:${IMAGE_TAG}
+docker push ${ECR}/erp-frontend:${IMAGE_TAG}
+docker push ${ECR}/pos-backend:${IMAGE_TAG}
+docker push ${ECR}/pos-frontend:${IMAGE_TAG}
 
 echo
-echo "========================"
-echo "Docker Compose Images"
-echo "========================"
-docker compose -f compose.build.yaml config | grep image
-
-echo
-echo "========================"
-echo "ECR"
-echo "========================"
-echo "$ECR"
-
-echo
-echo "========================"
-echo "IMAGE TAG"
-echo "========================"
-echo "$IMAGE_TAG"
+echo "======================================="
+echo "Push Completed Successfully"
+echo "======================================="
