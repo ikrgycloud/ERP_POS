@@ -1,0 +1,24 @@
+# Local configuration and source-control metadata
+.git
+.env
+**/.env
+
+# Dependencies, generated files, and test caches
+**/node_modules
+**/.venv
+**/__pycache__
+**/.pytest_cache
+**/*.py[cod]
+**/*.egg-info
+POS-Frontend/dist
+
+# Runtime data is supplied by named Docker volumes
+POS-Backend/uploads
+POS-Backend/logs
+
+# Editor and operating-system files
+.vscode
+.idea
+*.swp
+.DS_Store
+Thumbs.db

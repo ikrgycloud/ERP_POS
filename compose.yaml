@@ -166,7 +166,8 @@ networks:
 
 volumes:
   erp_postgres_data:
-    name: erp_postgres_data
+    # Set POSTGRES_VOLUME_NAME uniquely for each environment/server.
+    name: ${POSTGRES_VOLUME_NAME:-erp_postgres_data}
   erp_backend_uploads:
     name: erp_backend_uploads
   erp_backend_logs:

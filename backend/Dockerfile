@@ -2,8 +2,7 @@ FROM python:3.11-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PIP_NO_CACHE_DIR=1 \
-    TRUSTED_HOSTS=erp.vee-gpt.com,erp-backend,127.0.0.1,localhost
+    PIP_NO_CACHE_DIR=1
 
 
 # Set working directory
