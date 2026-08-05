@@ -1,0 +1,189 @@
+/* Self-hosted so the UI renders identically offline / air-gapped. */
+@font-face {
+  font-family: 'IBM Plex Sans';
+  src: url('/fonts/IBMPlexSans-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'IBM Plex Sans';
+  src: url('/fonts/IBMPlexSans-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'IBM Plex Sans';
+  src: url('/fonts/IBMPlexSans-SemiBold.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'IBM Plex Sans';
+  src: url('/fonts/IBMPlexSans-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'IBM Plex Mono';
+  src: url('/fonts/IBMPlexMono-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'IBM Plex Mono';
+  src: url('/fonts/IBMPlexMono-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'IBM Plex Mono';
+  src: url('/fonts/IBMPlexMono-SemiBold.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'IBM Plex Mono';
+  src: url('/fonts/IBMPlexMono-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Default POS — values exactly match the original design palette. */
+:root {
+  --ground: 18 16 14; --surface: 27 24 21; --raised: 35 32 25;
+  --hair: 46 42 36; --hairsoft: 36 31 26; --bone: 245 239 230;
+  --dim: 166 156 140; --mute: 110 101 90; --primary: 255 176 32;
+  --secondary: 138 95 18; --accent: 167 139 250; --sidebar: 27 24 21;
+  --success: 74 222 128; --warning: 255 176 32; --danger: 248 113 113; --info: 96 165 250;
+  --inverse: 255 255 255; --overlay: 0 0 0; --receipt: 255 255 255;
+  --receipt-text: 17 17 17; --receipt-border: 107 114 128; --receipt-frame: 229 231 235;
+  --chart1: 245 158 11; --chart2: 239 68 68; --chart3: 34 197 94; --chart4: 56 189 248; --chart5: 139 92 246;
+  --login: 15 13 11; --on-primary: 26 18 6;
+  --header: 27 24 21; --table-header: 35 32 25;
+  --sidebar-border: 46 42 36; --sidebar-hover: 27 24 21; --sidebar-active: 35 32 25;
+  --sidebar-text: 110 101 90; --sidebar-text-active: 255 176 32; --sidebar-logo: 255 176 32; --sidebar-logo-text: 26 18 6;
+  --sidebar-text-muted: 110 101 90; --sidebar-text-hover: 166 156 140; --sidebar-icon: 110 101 90; --sidebar-icon-hover: 166 156 140; --sidebar-icon-active: 255 176 32; --sidebar-active-border: 255 176 32;
+  --header-text: 245 239 230; --header-muted: 110 101 90; --avatar: 42 36 25; --avatar-text: 166 156 140; --avatar-border: 46 42 36;
+  --shadow-card: none; --shadow-dialog: 0 25px 50px rgb(0 0 0 / .25); --shadow-sidebar: none; --shadow-header: none; --shadow-active: none;
+  --app-glow-one: 18 16 14; --app-glow-two: 18 16 14; --app-glow-opacity: 0;
+  --page-gradient: none; --surface-gradient: none; --card-gradient: none; --panel-gradient: none; --dialog-gradient: none; --drawer-gradient: none; --widget-gradient: none;
+  --shadow-color: 0 0 0; --ambient-shadow-opacity: 0;
+  --header-glow-one: 27 24 21; --header-glow-two: 27 24 21; --header-glow-opacity: 0; --header-gradient-start: 27 24 21; --header-gradient-end: 27 24 21;
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+  }
+  body {
+    @apply bg-ground font-sans text-bone antialiased;
+  }
+  /* Money and IDs must line up down a column. */
+  .font-mono {
+    font-variant-numeric: tabular-nums;
+  }
+  ::selection {
+    @apply bg-amber/30 text-bone;
+  }
+  /* Kill the number-input spinners; they misalign the cart steppers. */
+  input[type='number']::-webkit-outer-spin-button,
+  input[type='number']::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type='number'] {
+    -moz-appearance: textfield;
+  }
+  select option {
+    @apply bg-ground text-bone;
+  }
+}
+
+/* CSS-only transitions preserve active routes, forms, and query data. */
+*, *::before, *::after { transition-property: background-color, color, border-color, box-shadow; transition-duration: 200ms; transition-timing-function: ease; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition-duration: 0ms !important; } }
+
+/* On-screen receipts follow the theme; printer output stays universal and readable. */
+.receipt-paper { background: rgb(var(--receipt)); color: rgb(var(--receipt-text)); }
+.receipt-rule { border-color: rgb(var(--receipt-border)); }
+.theme-card { background-image: var(--card-gradient); box-shadow: var(--shadow-card), 0 8px 22px rgb(var(--shadow-color) / var(--ambient-shadow-opacity, 0)); }
+.theme-dialog { background-image: var(--dialog-gradient); box-shadow: var(--shadow-dialog); }
+.theme-sidebar { box-shadow: var(--shadow-sidebar); }
+.theme-header {
+  box-shadow: var(--shadow-header);
+  background-image:
+    linear-gradient(105deg, rgb(var(--header-glow-one) / var(--header-glow-opacity)), rgb(var(--header-glow-two) / var(--header-glow-opacity))),
+    linear-gradient(105deg, rgb(var(--header-gradient-start)), rgb(var(--header-gradient-end)));
+}
+.app-shell {
+  background-color: rgb(var(--ground));
+  background-image: var(--page-gradient);
+  background-attachment: fixed;
+}
+.bg-surface { background-image: var(--surface-gradient); }
+.bg-raised { background-image: var(--panel-gradient); }
+.theme-card.bg-surface { background-image: var(--card-gradient); }
+html, body, #root { background: rgb(var(--ground)); }
+
+/* Shared sidebar interaction system. Labels and glyphs inherit semantic states. */
+.sidebar-item { position: relative; display: flex; height: 52px; width: 56px; flex-direction: column; align-items: center; justify-content: center; border: 1px solid transparent; border-radius: 11px; background: transparent; color: rgb(var(--sidebar-text)); transition: background-color 180ms ease, color 180ms ease, border-color 180ms ease, box-shadow 180ms ease; }
+.sidebar-item:hover { background: rgb(var(--sidebar-hover) / .18); border-color: rgb(var(--sidebar-border) / .7); color: rgb(var(--sidebar-text-hover)); }
+.sidebar-item:active { transform: translateY(1px); }
+.sidebar-item:focus-visible { outline: 2px solid rgb(var(--sidebar-logo)); outline-offset: 3px; }
+.sidebar-item.is-active { background: rgb(var(--sidebar-active)); border-color: rgb(var(--sidebar-active-border)); color: rgb(var(--sidebar-text-active)); box-shadow: var(--shadow-active); font-weight: 700; }
+.sidebar-item[aria-disabled='true'] { pointer-events: none; opacity: .42; }
+.sidebar-icon { color: rgb(var(--sidebar-icon)); transition: color 180ms ease; }
+.sidebar-label { color: inherit; transition: color 180ms ease; }
+.sidebar-item:hover .sidebar-icon { color: rgb(var(--sidebar-icon-hover)); }
+.sidebar-item.is-active .sidebar-icon { color: rgb(var(--sidebar-icon-active)); }
+.sidebar-active-marker { background: rgb(var(--sidebar-active-border)); }
+.profile-name { color: rgb(var(--profile-name)); }
+.profile-role { color: rgb(var(--profile-role)); }
+.profile-code { border-color: rgb(var(--profile-code) / .35); background: rgb(var(--profile-code) / .10); color: rgb(var(--profile-code)); }
+@media print { .receipt-paper { background: #fff !important; color: #111 !important; } }
+
+@layer utilities {
+  /* Scrollbars that don't shout on a dark ground. */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(var(--hair)) transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  *::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-hair;
+  }
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+/* Printing an invoice should print only the receipt. */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .print\:shadow-none,
+  .print\:shadow-none * {
+    visibility: visible;
+  }
+  .print\:shadow-none {
+    position: absolute;
+    left: 0;
+    top: 0;
+  }
+}

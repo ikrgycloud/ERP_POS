@@ -1,0 +1,42 @@
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: ['./index.html', './src/**/*.{js,jsx}'],
+  safelist: ['fill-chart1', 'fill-chart2', 'fill-chart3', 'fill-chart4', 'fill-chart5', 'bg-chart1', 'bg-chart2', 'bg-chart3', 'bg-chart4', 'bg-chart5'],
+  theme: {
+    extend: {
+      colors: {
+        ground: 'rgb(var(--ground) / <alpha-value>)', surface: 'rgb(var(--surface) / <alpha-value>)',
+        raised: 'rgb(var(--raised) / <alpha-value>)', hair: 'rgb(var(--hair) / <alpha-value>)',
+        hairsoft: 'rgb(var(--hairsoft) / <alpha-value>)', bone: 'rgb(var(--bone) / <alpha-value>)',
+        dim: 'rgb(var(--dim) / <alpha-value>)', mute: 'rgb(var(--mute) / <alpha-value>)',
+        amber: 'rgb(var(--primary) / <alpha-value>)', amberdim: 'rgb(var(--secondary) / <alpha-value>)',
+        ok: 'rgb(var(--success) / <alpha-value>)', danger: 'rgb(var(--danger) / <alpha-value>)',
+        info: 'rgb(var(--info) / <alpha-value>)', violet: 'rgb(var(--accent) / <alpha-value>)',
+        sidebar: 'rgb(var(--sidebar) / <alpha-value>)',
+        primary: 'rgb(var(--primary) / <alpha-value>)', secondary: 'rgb(var(--secondary) / <alpha-value>)',
+        accent: 'rgb(var(--accent) / <alpha-value>)', background: 'rgb(var(--ground) / <alpha-value>)',
+        'surface-alt': 'rgb(var(--raised) / <alpha-value>)', border: 'rgb(var(--hair) / <alpha-value>)',
+        'border-light': 'rgb(var(--hairsoft) / <alpha-value>)', 'text-primary': 'rgb(var(--bone) / <alpha-value>)',
+        'text-secondary': 'rgb(var(--dim) / <alpha-value>)', 'text-muted': 'rgb(var(--mute) / <alpha-value>)',
+        inverse: 'rgb(var(--inverse) / <alpha-value>)', overlay: 'rgb(var(--overlay) / <alpha-value>)',
+        receipt: 'rgb(var(--receipt) / <alpha-value>)', 'receipt-text': 'rgb(var(--receipt-text) / <alpha-value>)',
+        'receipt-border': 'rgb(var(--receipt-border) / <alpha-value>)', 'receipt-frame': 'rgb(var(--receipt-frame) / <alpha-value>)',
+        chart1: 'rgb(var(--chart1) / <alpha-value>)', chart2: 'rgb(var(--chart2) / <alpha-value>)', chart3: 'rgb(var(--chart3) / <alpha-value>)', chart4: 'rgb(var(--chart4) / <alpha-value>)', chart5: 'rgb(var(--chart5) / <alpha-value>)',
+        login: 'rgb(var(--login) / <alpha-value>)', 'on-primary': 'rgb(var(--on-primary) / <alpha-value>)',
+        warning: 'rgb(var(--warning) / <alpha-value>)',
+        header: 'rgb(var(--header) / <alpha-value>)', 'table-header': 'rgb(var(--table-header) / <alpha-value>)',
+        'sidebar-border': 'rgb(var(--sidebar-border) / <alpha-value>)', 'sidebar-hover': 'rgb(var(--sidebar-hover) / <alpha-value>)', 'sidebar-active': 'rgb(var(--sidebar-active) / <alpha-value>)',
+        'sidebar-text': 'rgb(var(--sidebar-text) / <alpha-value>)', 'sidebar-text-active': 'rgb(var(--sidebar-text-active) / <alpha-value>)',
+        'sidebar-logo': 'rgb(var(--sidebar-logo) / <alpha-value>)', 'sidebar-logo-text': 'rgb(var(--sidebar-logo-text) / <alpha-value>)',
+        'header-text': 'rgb(var(--header-text) / <alpha-value>)', 'header-muted': 'rgb(var(--header-muted) / <alpha-value>)',
+        avatar: 'rgb(var(--avatar) / <alpha-value>)', 'avatar-text': 'rgb(var(--avatar-text) / <alpha-value>)', 'avatar-border': 'rgb(var(--avatar-border) / <alpha-value>)',
+      },
+      fontFamily: {
+        sans: ['"IBM Plex Sans"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        mono: ['"IBM Plex Mono"', 'ui-monospace', 'monospace'],
+      },
+      borderRadius: { panel: '14px', card: '12px', ctl: '9px' },
+    },
+  },
+  plugins: [],
+}

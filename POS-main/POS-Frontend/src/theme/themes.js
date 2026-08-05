@@ -1,0 +1,24 @@
+export const DEFAULT_THEME = 'default';
+const makeTheme = ({ name, primary, secondary, accent, sidebar, background, surface = '#FFFFFF', card = surface, header = surface, input = surface, tableHeader = '#F8FAFC', border = '#DCE3EA', success = '#16803D', warning = '#B7791F', danger = '#C2413A', info = '#2563EB', dark = false }) => ({
+  name, primary, secondary, accent, sidebar, background, surface, card, header, input, tableHeader, border, success, warning, danger, info, dark,
+  chartPalette: [primary, secondary, accent, info, success],
+});
+
+export const THEMES = {
+  default: makeTheme({ name: 'Default POS', primary: '#FFB020', secondary: '#8A5F12', accent: '#A78BFA', sidebar: '#1B1815', background: '#12100E', surface: '#1B1815', card: '#221E19', header: '#1B1815', input: '#232019', tableHeader: '#232019', border: '#2E2A24', success: '#4ADE80', warning: '#F97316', danger: '#F87171', info: '#60A5FA', dark: true }),
+  nordic: makeTheme({ name: 'Nordic White', primary: '#2563EB', secondary: '#475569', accent: '#06B6D4', sidebar: '#1E293B', background: '#F3F5F7', surface: '#FFFFFF', card: '#FFFFFF', header: '#FBFDFE', tableHeader: '#F7F9FB', border: '#DCE3EA', info: '#0EA5E9' }),
+  stone: makeTheme({ name: 'Warm Stone', primary: '#8B5E3C', secondary: '#A97B57', accent: '#D97706', sidebar: '#43352A', background: '#F6F4EF', surface: '#FFFEFB', card: '#FFFEFB', header: '#FCFAF6', input: '#FFFEFB', tableHeader: '#F4F0E9', border: '#E2D8CA', warning: '#B7791F' }),
+  forest: makeTheme({ name: 'Forest Executive', primary: '#1F7A4D', secondary: '#3D9B68', accent: '#84CC16', sidebar: '#123524', background: '#F2F8F4', surface: '#FFFFFF', card: '#FFFFFF', header: '#FAFCFA', tableHeader: '#EAF4ED', border: '#D4E5D9', success: '#167A45' }),
+  ocean: makeTheme({ name: 'Ocean Enterprise', primary: '#2563EB', secondary: '#0891B2', accent: '#7DD3FC', sidebar: '#17375E', background: '#EFF6FB', surface: '#FFFFFF', card: '#FFFFFF', header: '#FAFCFE', tableHeader: '#E8F1F8', border: '#D4E2ED', info: '#1D5DB8' }),
+  graphite: makeTheme({ name: 'Graphite', primary: '#374151', secondary: '#5B6574', accent: '#3B82F6', sidebar: '#1B1F24', background: '#ECEFF3', surface: '#FFFFFF', card: '#FFFFFF', header: '#FAFBFC', tableHeader: '#F4F6F8', border: '#D5DAE0', success: '#15803D', warning: '#B45309', danger: '#B91C1C', info: '#1D4ED8' }),
+  midnight: makeTheme({ name: 'Midnight Pro', primary: '#38BDF8', secondary: '#2D7FA8', accent: '#2DD4BF', sidebar: '#09111F', background: '#0F172A', surface: '#111827', card: '#162133', header: '#111827', input: '#1A2638', tableHeader: '#1B2940', border: '#2B3B55', success: '#22C55E', warning: '#EAB308', danger: '#FB7185', info: '#60A5FA', dark: true }),
+  beige: makeTheme({ name: 'Luxury Beige', primary: '#A16207', secondary: '#B7791F', accent: '#F59E0B', sidebar: '#3B3025', background: '#FAF7F2', surface: '#FFFFFF', card: '#FFFFFF', header: '#FFFDFB', tableHeader: '#F6F0E7', border: '#E6DCCF', warning: '#C2410C' }),
+  lavender: makeTheme({ name: 'Soft Lavender', primary: '#7C3AED', secondary: '#8F66D8', accent: '#A855F7', sidebar: '#2E265F', background: '#F7F5FC', surface: '#FFFFFF', card: '#FFFFFF', header: '#FCFBFE', tableHeader: '#F0ECFA', border: '#DED7F0' }),
+  ice: makeTheme({ name: 'Ice Blue', primary: '#0284C7', secondary: '#2B9ECF', accent: '#06B6D4', sidebar: '#143B4D', background: '#F2F9FC', surface: '#FFFFFF', card: '#FFFFFF', header: '#FAFDFE', tableHeader: '#E8F5FA', border: '#CFE5EF' }),
+  // Premium light: cool platinum base, deep navy primary, muted gold accent — upscale retail/boutique feel
+  platinum: makeTheme({ name: 'Platinum Frost', primary: '#1E3A5F', secondary: '#64748B', accent: '#C9A227', sidebar: '#0F1E2E', background: '#F0F2F5', surface: '#FFFFFF', card: '#FFFFFF', header: '#FAFBFC', tableHeader: '#F5F7FA', border: '#DCE1E8', success: '#15803D', warning: '#B45309', danger: '#B91C1C', info: '#2563EB' }),
+  // Premium dark: warm near-black with true 3-tier elevation, gold primary, teal accent — luxury/lounge POS feel
+  obsidian: makeTheme({ name: 'Obsidian Gold', primary: '#D4AF37', secondary: '#8B7355', accent: '#2DD4BF', sidebar: '#0A0A0C', background: '#101012', surface: '#17171A', card: '#1F1F23', header: '#17171A', input: '#1C1C20', tableHeader: '#1C1C20', border: '#2A2A2F', success: '#34D399', warning: '#EA580C', danger: '#F87171', info: '#60A5FA', dark: true }),
+  // Professional/executive: charcoal-steel primary, teal accent, corporate-neutral background — most "serious enterprise" of the set
+  executive: makeTheme({ name: 'Executive Slate', primary: '#2C3A4A', secondary: '#6B7A8F', accent: '#0EA5A4', sidebar: '#17212B', background: '#EEF1F4', surface: '#FFFFFF', card: '#FFFFFF', header: '#FAFBFC', tableHeader: '#F3F5F7', border: '#D9DEE4', success: '#16803D', warning: '#B45309', danger: '#B91C1C', info: '#1D4ED8' }),
+};

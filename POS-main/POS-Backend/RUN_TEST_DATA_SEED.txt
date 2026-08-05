@@ -1,0 +1,36 @@
+Double-click this file's companion runner:
+
+    run_seed_test_data.bat
+
+Or run manually from the project folder:
+
+    python -m scripts.seed_test_data
+
+What it creates:
+
+- business_profiles: TEST-BP
+- outlets: TEST-OUTLET-001
+- staff:
+  - TEST-BM001 / Test@123
+  - TEST-SM001 / Test@123
+  - TEST-SP001 / Test@123
+- categories: TEST Groceries
+- suppliers: TEST Acme Supplier
+- products: TEST-SKU-MILK, barcode TEST-BC-MILK
+- product_discounts
+- product_quantities
+- customers
+- orders
+- order_items
+- invoices:
+  - TEST-INV-0001
+  - TEST-REV-0001
+- payments
+- returns: TEST-RET-0001
+- return_items
+- damaged_inventory
+- waybills: TEST-WAY-0001
+- audit_logs
+
+The seed is idempotent. Running it again reuses TEST-* records instead of
+deleting your database or creating duplicate unique records.
