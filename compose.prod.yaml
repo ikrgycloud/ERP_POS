@@ -1,0 +1,230 @@
+# Standalone production stack that pulls prebuilt images from ECR instead of
+# building locally. Run from the repository root, independently of compose.yaml:
+#
+#   aws ecr get-login-password --region eu-north-1 | docker login --username AWS --password-stdin 032844082845.dkr.ecr.eu-north-1.amazonaws.com
+#   docker compose -f compose.prod.yaml pull
+#   docker compose -f compose.prod.yaml up -d
+#
+# Set IMAGE_TAG in .env to the tag pushed by CI (defaults to "latest").
+# Do not expose ports 8000, 8001, 8080, or 8081 publicly; put a load balancer
+# or reverse proxy in front and point it at 8080 (ERP) and 8081 (POS).
+name: ${COMPOSE_PROJECT_NAME:-business-platform}
+
+x-db: &db_env
+  POSTGRES_DB: ${POSTGRES_DB:?Set POSTGRES_DB in .env}
+  POSTGRES_USER: ${POSTGRES_USER:?Set POSTGRES_USER in .env}
+  POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+
+x-erp-image: &erp_image 032844082845.dkr.ecr.eu-north-1.amazonaws.com/erp-backend:${IMAGE_TAG:-latest}
+x-pos-image: &pos_image 032844082845.dkr.ecr.eu-north-1.amazonaws.com/pos-backend:${IMAGE_TAG:-latest}
+
+x-erp: &erp_env
+  ENVIRONMENT: ${APP_ENV:-production}
+  APP_ENV: ${APP_ENV:-production}
+  HOST: 0.0.0.0
+  PORT: 8001
+  DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+  AUTO_CREATE_TABLES: "false"
+  ALLOW_DEV_SEED: "false"
+  CORS_ORIGINS: ${ERP_CORS_ORIGINS}
+  TRUSTED_HOSTS: ${ERP_TRUSTED_HOSTS}
+  ERP_PUBLIC_BASE_URL: ${ERP_PUBLIC_BASE_URL}
+  MEDIA_BASE_URL: ${ERP_MEDIA_BASE_URL:-auto}
+  UPLOAD_DIR: /data/uploads
+  STATIC_DIR: /data/static
+  LOG_FILE: /data/logs/erp-backend.log
+  REGISTER_KEY: ${REGISTER_KEY:?Set REGISTER_KEY in .env}
+  SECRET_KEY: ${SECRET_KEY:-}
+  JWT_SECRET_KEY: ${JWT_SECRET_KEY:?Set JWT_SECRET_KEY in .env}
+  JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
+  ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-480}
+  REFRESH_TOKEN_EXPIRE_DAYS: ${REFRESH_TOKEN_EXPIRE_DAYS:-7}
+  LOG_LEVEL: ${LOG_LEVEL:-INFO}
+  LOG_FORMAT: ${LOG_FORMAT:-text}
+  RATE_LIMIT_ENABLED: ${ERP_RATE_LIMIT_ENABLED:-false}
+  NOTIFICATION_WORKER_ENABLED: ${ERP_NOTIFICATION_WORKER_ENABLED:-true}
+  BACKGROUND_WORKER_INTERVAL: ${BACKGROUND_WORKER_INTERVAL:-10}
+  NOTIFICATION_BATCH_SIZE: ${NOTIFICATION_BATCH_SIZE:-50}
+  NOTIFICATION_RETRY_SCHEDULE_SECONDS: ${NOTIFICATION_RETRY_SCHEDULE_SECONDS:-60,300,900,1800,3600,21600}
+  SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}
+  SMTP_PORT: ${SMTP_PORT:-587}
+  SMTP_USERNAME: ${SMTP_USERNAME:-}
+  SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+  SMTP_FROM: ${SMTP_FROM:-}
+  TWILIO_ENABLED: ${TWILIO_ENABLED:-false}
+  SMS_ENABLED: ${SMS_ENABLED:-false}
+  TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID:-}
+  TWILIO_AUTH_TOKEN: ${TWILIO_AUTH_TOKEN:-}
+  TWILIO_PHONE_NUMBER: ${TWILIO_PHONE_NUMBER:-}
+  WHATSAPP_ENABLED: ${WHATSAPP_ENABLED:-false}
+  DEFAULT_CUSTOMER_COUNTRY_CODE: ${DEFAULT_CUSTOMER_COUNTRY_CODE:-+91}
+  S3_BUCKET: ${S3_BUCKET:-}
+  S3_REGION: ${S3_REGION:-}
+  S3_ACCESS_KEY: ${S3_ACCESS_KEY:-}
+  S3_SECRET_KEY: ${S3_SECRET_KEY:-}
+
+x-pos: &pos_env
+  ENVIRONMENT: ${POS_ENVIRONMENT:-production}
+  HOST: 0.0.0.0
+  PORT: 8000
+  DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+  AUTO_CREATE_DATABASE: "false"
+  AUTO_CREATE_TABLES: "false"
+  ALLOW_DEV_SEED: "false"
+  CORS_ORIGINS: ${POS_CORS_ORIGINS}
+  TRUSTED_HOSTS: ${POS_TRUSTED_HOSTS}
+  INVOICE_PUBLIC_BASE_URL: ${POS_INVOICE_PUBLIC_BASE_URL}
+  MEDIA_BASE_URL: ${POS_MEDIA_BASE_URL:-auto}
+  UPLOAD_DIR: /app/uploads
+  STATIC_DIR: /app/static
+  LOG_FILE: /app/logs/pos-backend.log
+  APP_NAME: ${POS_APP_NAME:-POS + ERP API}
+  APP_VERSION: ${POS_APP_VERSION:-1.0.0}
+  DEBUG: ${POS_DEBUG:-false}
+  SECRET_KEY: ${POS_SECRET_KEY:?Set POS_SECRET_KEY in .env}
+  JWT_SECRET_KEY: ${POS_JWT_SECRET_KEY:-}
+  ACCESS_TOKEN_EXPIRE_MINUTES: ${POS_ACCESS_TOKEN_EXPIRE_MINUTES:-60}
+  REFRESH_TOKEN_EXPIRE_DAYS: ${POS_REFRESH_TOKEN_EXPIRE_DAYS:-7}
+  ENABLE_HTTPS_REDIRECT: ${POS_ENABLE_HTTPS_REDIRECT:-false}
+  RATE_LIMIT_ENABLED: ${POS_RATE_LIMIT_ENABLED:-false}
+  RATE_LIMIT_REQUESTS: ${POS_RATE_LIMIT_REQUESTS:-120}
+  RATE_LIMIT_WINDOW_SECONDS: ${POS_RATE_LIMIT_WINDOW_SECONDS:-60}
+  NOTIFICATION_WORKER_ENABLED: ${POS_NOTIFICATION_WORKER_ENABLED:-true}
+  NOTIFICATION_WORKER_INTERVAL_SECONDS: ${POS_NOTIFICATION_WORKER_INTERVAL_SECONDS:-10}
+  NOTIFICATION_BATCH_SIZE: ${POS_NOTIFICATION_BATCH_SIZE:-20}
+  EMAIL_ENABLED: ${EMAIL_ENABLED:-false}
+  SMS_ENABLED: ${SMS_ENABLED:-false}
+  TWILIO_ENABLED: ${TWILIO_ENABLED:-false}
+  WHATSAPP_ENABLED: ${WHATSAPP_ENABLED:-false}
+  DEFAULT_CUSTOMER_COUNTRY_CODE: ${DEFAULT_CUSTOMER_COUNTRY_CODE:-+91}
+  SMTP_HOST: ${SMTP_HOST:-}
+  SMTP_PORT: ${SMTP_PORT:-587}
+  SMTP_USERNAME: ${SMTP_USERNAME:-}
+  SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+  SMTP_FROM: ${SMTP_FROM:-}
+  TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID:-}
+  TWILIO_AUTH_TOKEN: ${TWILIO_AUTH_TOKEN:-}
+  TWILIO_PHONE_NUMBER: ${TWILIO_PHONE_NUMBER:-}
+  TWILIO_WHATSAPP_NUMBER: ${TWILIO_WHATSAPP_NUMBER:-}
+  S3_BUCKET: ${S3_BUCKET:-}
+  S3_REGION: ${S3_REGION:-}
+  S3_ACCESS_KEY: ${S3_ACCESS_KEY:-}
+  S3_SECRET_KEY: ${S3_SECRET_KEY:-}
+
+services:
+  db:
+    image: postgres:${POSTGRES_VERSION:-17}-alpine
+    restart: unless-stopped
+    environment: *db_env
+    volumes:
+      - erp_postgres_data:/var/lib/postgresql/data
+      # Runs only while PostgreSQL creates a brand-new data volume.
+      - ./database/bootstrap:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+    networks: [platform]
+
+  pos-migrate:
+    image: *pos_image
+    restart: "no"
+    environment: *pos_env
+    command: ["alembic", "upgrade", "head"]
+    depends_on:
+      db: { condition: service_healthy }
+    networks: [platform]
+
+  erp-migrate:
+    image: *erp_image
+    restart: "no"
+    environment: *erp_env
+    command: ["python", "scripts/run_migrations.py"]
+    depends_on:
+      db: { condition: service_healthy }
+      pos-migrate: { condition: service_completed_successfully }
+    networks: [platform]
+
+  pos-backend:
+    image: *pos_image
+    restart: unless-stopped
+    environment: *pos_env
+    volumes: [pos_uploads:/app/uploads, pos_logs:/app/logs]
+    depends_on:
+      db: { condition: service_healthy }
+      pos-migrate: { condition: service_completed_successfully }
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3).read()"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 25s
+    networks: [platform]
+
+  erp-backend:
+    image: *erp_image
+    restart: unless-stopped
+    environment: *erp_env
+    volumes: [erp_backend_uploads:/data/uploads, erp_backend_logs:/data/logs]
+    depends_on:
+      db: { condition: service_healthy }
+      erp-migrate: { condition: service_completed_successfully }
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/health', timeout=3).read()"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 25s
+    networks: [platform]
+
+  pos-web:
+    image: 032844082845.dkr.ecr.eu-north-1.amazonaws.com/pos-frontend:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    environment:
+      POS_API_UPSTREAM: http://pos-backend:8000
+      POS_CLIENT_MAX_BODY_SIZE: ${POS_CLIENT_MAX_BODY_SIZE:-16m}
+      PORT: "80"
+    ports: ["${POS_WEB_PORT:-8081}:80"]
+    depends_on:
+      pos-backend: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://127.0.0.1/', r => process.exit(r.statusCode < 500 ? 0 : 1)).on('error', () => process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks: [platform]
+
+  erp-web:
+    image: 032844082845.dkr.ecr.eu-north-1.amazonaws.com/erp-frontend:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    environment:
+      ERP_API_UPSTREAM: http://erp-backend:8001
+      ERP_CLIENT_MAX_BODY_SIZE: ${ERP_CLIENT_MAX_BODY_SIZE:-10m}
+      PORT: "80"
+    ports: ["${ERP_WEB_PORT:-8080}:80"]
+    depends_on:
+      erp-backend: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://127.0.0.1/', r => process.exit(r.statusCode < 500 ? 0 : 1)).on('error', () => process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks: [platform]
+
+networks:
+  platform: { driver: bridge }
+
+volumes:
+  erp_postgres_data:
+    # Set POSTGRES_VOLUME_NAME uniquely for each environment/server.
+    name: ${POSTGRES_VOLUME_NAME:-erp_postgres_data}
+  erp_backend_uploads:
+    name: erp_backend_uploads
+  erp_backend_logs:
+    name: erp_backend_logs
+  pos_uploads:
+  pos_logs:
