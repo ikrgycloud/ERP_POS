@@ -166,17 +166,16 @@ pipeline {
     steps {
         sshagent(credentials: ['app-server-ssh']) {
             sh '''
-ssh -o StrictHostKeyChecking=no ubuntu@${APP_SERVER} <<EOF
-cd ${APP_PATH}
-
-echo ""
-echo "====================================="
-echo "Running Containers"
-echo "====================================="
-docker ps
-
-echo ""
-echo "====================================="
+            ssh -o StrictHostKeyChecking=no ubuntu@${APP_SERVER} <<EOF
+            cd ${APP_PATH}
+            
+            echo ""
+            echo "====================================="
+            echo "Running Containers"
+            echo "====================================="
+            docker ps
+            echo ""
+            echo "====================================="
 echo "Container Health"
 echo "====================================="
 docker compose -f compose.prod.yaml ps
