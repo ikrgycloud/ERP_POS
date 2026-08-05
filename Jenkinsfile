@@ -29,6 +29,46 @@ pipeline {
                 checkout scm
             }
         }
+        stage('Debug Workspace') {
+    steps {
+        sh '''
+        echo "========================="
+        echo "Workspace"
+        echo "========================="
+        pwd
+
+        echo ""
+        echo "========================="
+        echo "Files"
+        echo "========================="
+        ls -la
+
+        echo ""
+        echo "========================="
+        echo "Git Branch"
+        echo "========================="
+        git branch
+
+        echo ""
+        echo "========================="
+        echo "compose.build.yaml"
+        echo "========================="
+        cat compose.build.yaml
+
+        echo ""
+        echo "========================="
+        echo "Compose Images"
+        echo "========================="
+        docker compose -f compose.build.yaml config | grep image
+
+        echo ""
+        echo "========================="
+        echo "Push Script"
+        echo "========================="
+        cat scripts/push.sh
+        '''
+    }
+}
 
         stage('Login to Amazon ECR') {
 
