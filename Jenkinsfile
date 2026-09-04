@@ -3,6 +3,7 @@ pipeline {
     agent any
 
     environment {
+
         AWS_REGION = "eu-north-1"
         AWS_ACCOUNT_ID = "032844082845"
 
@@ -27,49 +28,29 @@ pipeline {
             }
         }
 
-        stage('Debug Workspace') {
+
+        stage('Validate') {
             steps {
                 sh '''
-                echo "========================="
-                echo "Workspace"
-                echo "========================="
-                pwd
+                    set -e
 
-                echo ""
-                echo "========================="
-                echo "Files"
-                echo "========================="
-                ls -la
+                    echo "Checking repository..."
 
-                echo ""
-                echo "========================="
-                echo "Git Branch"
-                echo "========================="
-                git branch
+                    test -f compose.build.yaml
+                    test -f compose.prod.yaml
+                    test -f scripts/build.sh
+                    test -f scripts/push.sh
+                    test -f scripts/deploy.sh
 
-                echo ""
-                echo "========================="
-                echo "compose.build.yaml"
-                echo "========================="
-                cat compose.build.yaml
-
-                echo ""
-                echo "========================="
-                echo "Compose Images"
-                echo "========================="
-                docker compose -f compose.build.yaml config | grep image
-
-                echo ""
-                echo "========================="
-                echo "Push Script"
-                echo "========================="
-                cat scripts/push.sh
+                    echo "Repository validation successful."
                 '''
             }
         }
 
-        stage('Login to Amazon ECR') {
+
+        stage('Login to ECR') {
             steps {
+
                 withCredentials([
                     [
                         $class: 'AmazonWebServicesCredentialsBinding',
@@ -78,106 +59,119 @@ pipeline {
                 ]) {
 
                     sh '''
-                    set -e
+                        set -e
 
-                    aws ecr get-login-password --region ${AWS_REGION} | \
-                    docker login \
-                    --username AWS \
-                    --password-stdin ${ECR}
+                        aws ecr get-login-password \
+                            --region ${AWS_REGION} | \
+                        docker login \
+                            --username AWS \
+                            --password-stdin ${ECR}
                     '''
                 }
             }
         }
 
-        stage('Debug') {
-            steps {
-                sh '''
-                echo "===== Current Directory ====="
-                pwd
-
-                echo "===== Files ====="
-                ls -la
-
-                echo "===== compose.build.yaml ====="
-                cat compose.build.yaml
-
-                echo "===== Docker Compose Config ====="
-                docker compose -f compose.build.yaml config | grep image
-
-                echo "===== Build Script ====="
-                cat scripts/build.sh
-
-                echo "===== Push Script ====="
-                cat scripts/push.sh
-                '''
-            }
-        }
 
         stage('Build Images') {
             steps {
+
                 sh '''
-                chmod +x scripts/build.sh
-                ./scripts/build.sh
+                    set -e
+
+                    chmod +x scripts/build.sh
+
+                    ./scripts/build.sh
                 '''
             }
         }
+
 
         stage('Push Images') {
             steps {
+
                 sh '''
-                chmod +x scripts/push.sh
-                ./scripts/push.sh
+                    set -e
+
+                    chmod +x scripts/push.sh
+
+                    ./scripts/push.sh
                 '''
             }
         }
 
+
         stage('Deploy To EC2') {
             steps {
+
                 sshagent(credentials: ['app-server-ssh']) {
+
                     sh '''
-                    chmod +x scripts/deploy.sh
-                    ./scripts/deploy.sh
+                        set -e
+
+                        chmod +x scripts/deploy.sh
+
+                        ./scripts/deploy.sh
                     '''
                 }
             }
         }
 
+
         stage('Verify Deployment') {
             steps {
+
                 sshagent(credentials: ['app-server-ssh']) {
+
                     sh '''
-ssh -o StrictHostKeyChecking=no ubuntu@${APP_SERVER} <<EOF
-cd ${APP_PATH}
+                        set -e
 
-echo ""
-echo "====================================="
-echo "Running Containers"
-echo "====================================="
-docker ps
+                        ssh -o StrictHostKeyChecking=no \
+                            ubuntu@${APP_SERVER} <<EOF
 
-echo ""
-echo "====================================="
-echo "Container Health"
-echo "====================================="
-docker compose -f compose.prod.yaml ps
+                        cd ${APP_PATH}
 
-echo ""
-echo "====================================="
-echo "Application URLs"
-echo "====================================="
-echo "ERP : http://${APP_SERVER}:82"
-echo "POS : http://${APP_SERVER}:83"
+                        echo ""
+                        echo "====================================="
+                        echo "Container Status"
+                        echo "====================================="
+
+                        docker compose \
+                            -f compose.prod.yaml \
+                            ps
+
+                        echo ""
+                        echo "====================================="
+                        echo "Running Containers"
+                        echo "====================================="
+
+                        docker ps
+
+                        echo ""
+                        echo "====================================="
+                        echo "ERP URL"
+                        echo "====================================="
+
+                        echo "http://${APP_SERVER}:82"
+
+                        echo ""
+                        echo "====================================="
+                        echo "POS URL"
+                        echo "====================================="
+
+                        echo "http://${APP_SERVER}:83"
 
 EOF
-'''
+                    '''
                 }
             }
         }
     }
 
+
     post {
 
         success {
+
             echo '''
 ===========================================
 ERP + POS Deployment Successful
@@ -186,15 +180,12 @@ ERP + POS Deployment Successful
         }
 
         failure {
+
             echo '''
 ===========================================
-Deployment Failed
+ERP + POS Deployment Failed
 ===========================================
 '''
-        }
-
-        always {
-            echo "Skipping workspace cleanup"
         }
     }
 }
